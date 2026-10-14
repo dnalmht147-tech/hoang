@@ -1,0 +1,992 @@
+<!doctype html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AeroVision · Giám sát phương tiện</title>
+    <meta name="description" content="Giao diện giám sát và phân loại phương tiện từ ảnh drone">
+    <style>
+        :root {
+            --bg: #0b1013;
+            --panel: #12191d;
+            --line: #263136;
+            --muted: #8a999e;
+            --text: #eaf1ed;
+            --lime: #c1f76b;
+            --blue: #70b7ff;
+            --orange: #f6bc6c;
+            --pink: #c294fb
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font: 14px system-ui, -apple-system, sans-serif
+        }
+
+        button,
+        input,
+        select {
+            font: inherit
+        }
+
+        button {
+            cursor: pointer
+        }
+
+        button:focus-visible,
+        input:focus-visible,
+        select:focus-visible {
+            outline: 2px solid var(--lime);
+            outline-offset: 3px
+        }
+
+        button {
+            color: var(--text);
+            border: 1px solid var(--line);
+            background: #1a2429;
+            border-radius: 8px;
+            padding: 10px 14px
+        }
+
+        button:hover {
+            background: #29363b
+        }
+
+        button.primary {
+            background: var(--lime);
+            color: #172211;
+            border-color: var(--lime);
+            font-weight: 650
+        }
+
+        .app {
+            display: grid;
+            grid-template-columns: 220px 1fr;
+            min-height: 100vh
+        }
+
+        aside {
+            border-right: 1px solid var(--line);
+            padding: 28px 18px;
+            display: flex;
+            flex-direction: column;
+            position: sticky;
+            top: 0;
+            height: 100vh
+        }
+
+        .brand {
+            font-size: 22px;
+            font-weight: 750;
+            letter-spacing: -1px;
+            display: flex;
+            align-items: center;
+            gap: 10px
+        }
+
+        .brand svg {
+            width: 31px;
+            color: var(--lime)
+        }
+
+        .brand small {
+            font-size: 9px;
+            color: var(--lime);
+            letter-spacing: 2px;
+            display: block;
+            margin-top: 3px
+        }
+
+        .navtitle {
+            font-size: 10px;
+            color: #6f848b;
+            letter-spacing: 2px;
+            margin: 48px 12px 16px
+        }
+
+        .nav {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            padding: 13px 12px;
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+            color: var(--muted);
+            margin: 4px 0
+        }
+
+        .nav.active {
+            background: #233025;
+            color: var(--lime)
+        }
+
+        .nav svg {
+            width: 18px;
+            height: 18px
+        }
+
+        .side-bottom {
+            margin-top: auto
+        }
+
+        .connection {
+            padding: 15px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            font-size: 12px;
+            line-height: 1.8
+        }
+
+        .dot {
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--lime);
+            margin-right: 7px
+        }
+
+        .muted {
+            color: var(--muted)
+        }
+
+        .profile {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 22px
+        }
+
+        .avatar {
+            background: #25312b;
+            color: var(--lime);
+            padding: 10px;
+            border-radius: 50%;
+            font-size: 11px
+        }
+
+        .profile small {
+            display: block;
+            color: var(--muted);
+            margin-top: 4px
+        }
+
+        main {
+            min-width: 0
+        }
+
+        header {
+            padding: 21px 32px;
+            border-bottom: 1px solid var(--line);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12px
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 18px
+        }
+
+        .pill {
+            border: 1px solid var(--line);
+            border-radius: 5px;
+            padding: 5px 8px;
+            font-size: 10px;
+            letter-spacing: 1px
+        }
+
+        .content {
+            padding: 28px 32px;
+            max-width: 1680px;
+            margin: auto
+        }
+
+        .title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 25px
+        }
+
+        h1 {
+            font-size: 28px;
+            letter-spacing: -.8px;
+            margin: 0 0 8px
+        }
+
+        p {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.6
+        }
+
+        .actions {
+            display: flex;
+            gap: 9px
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-bottom: 24px
+        }
+
+        .stat {
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 18px 20px;
+            background: var(--panel)
+        }
+
+        .stat-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--muted);
+            font-size: 12px
+        }
+
+        .stat-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 7px;
+            display: grid;
+            place-items: center;
+            background: #223121;
+            color: var(--lime)
+        }
+
+        .stat strong {
+            font-size: 31px;
+            display: block;
+            margin: 8px 0;
+            letter-spacing: -1px
+        }
+
+        .stat small {
+            font-size: 11px;
+            color: var(--muted)
+        }
+
+        .workspace {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 300px;
+            gap: 20px;
+            align-items: start
+        }
+
+        .panel {
+            border: 1px solid var(--line);
+            border-radius: 11px;
+            background: var(--panel);
+            overflow: hidden
+        }
+
+        .panel-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 18px;
+            border-bottom: 1px solid var(--line)
+        }
+
+        h2 {
+            font-size: 14px;
+            margin: 0;
+            font-weight: 600
+        }
+
+        .feed {
+            position: relative;
+            background: #202b25;
+            aspect-ratio: 16/10;
+            overflow: hidden
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block
+        }
+
+        .feed-label {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            background: #0d171add;
+            padding: 7px 10px;
+            border-radius: 5px;
+            font-size: 10px;
+            letter-spacing: 1px;
+            pointer-events: none
+        }
+
+        .feed-label .dot {
+            background: #f0b663
+        }
+
+        .feed-topright {
+            position: absolute;
+            right: 16px;
+            top: 16px;
+            background: #0d171add;
+            padding: 7px 10px;
+            border-radius: 5px;
+            font: 10px monospace;
+            pointer-events: none
+        }
+
+        .cross {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 26px;
+            height: 26px;
+            border: 1px solid #ffffff44;
+            transform: translate(-50%, -50%);
+            pointer-events: none
+        }
+
+        .feed-bottom {
+            position: absolute;
+            left: 16px;
+            right: 16px;
+            bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            pointer-events: none;
+            font: 11px monospace
+        }
+
+        .feed-bottom span {
+            background: #0d171add;
+            padding: 9px;
+            border-radius: 5px
+        }
+
+        .feed-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            font-size: 11px;
+            gap: 12px
+        }
+
+        .feed-toolbar button {
+            padding: 7px 10px;
+            font-size: 11px
+        }
+
+        .legend {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap
+        }
+
+        .legend i {
+            width: 6px;
+            height: 6px;
+            display: inline-block;
+            border-radius: 2px;
+            margin-right: 5px
+        }
+
+        .control-body {
+            padding: 18px
+        }
+
+        .label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            margin-bottom: 12px
+        }
+
+        input[type=range] {
+            accent-color: var(--lime);
+            width: 100%
+        }
+
+        .range-labels {
+            display: flex;
+            justify-content: space-between;
+            color: var(--muted);
+            font-size: 10px;
+            margin: 5px 0 24px
+        }
+
+        .check {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            margin: 12px 0
+        }
+
+        input[type=checkbox] {
+            accent-color: var(--lime)
+        }
+
+        .divider {
+            height: 1px;
+            background: var(--line);
+            margin: 22px 0
+        }
+
+        .breakdown {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 18px 0
+        }
+
+        .breakdown .type {
+            width: 55px;
+            font-size: 12px
+        }
+
+        .bar {
+            flex: 1;
+            height: 5px;
+            background: #263036;
+            border-radius: 4px;
+            overflow: hidden
+        }
+
+        .bar>div {
+            height: 100%;
+            border-radius: 4px
+        }
+
+        .breakdown b {
+            font: 12px monospace;
+            width: 22px;
+            text-align: right
+        }
+
+        .note {
+            font-size: 11px;
+            line-height: 1.7;
+            color: var(--muted)
+        }
+
+        .source {
+            margin-top: 18px
+        }
+
+        .source button {
+            width: 100%;
+            font-size: 12px;
+            margin-top: 10px
+        }
+
+        .table-panel {
+            margin-top: 22px
+        }
+
+        .table-head-tools {
+            display: flex;
+            gap: 10px;
+            align-items: center
+        }
+
+        select {
+            background: #182329;
+            color: var(--text);
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            padding: 7px;
+            font-size: 11px
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 12px
+        }
+
+        th {
+            color: var(--muted);
+            font-weight: 400;
+            background: #151e22;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px
+        }
+
+        th,
+        td {
+            padding: 12px 18px;
+            border-bottom: 1px solid #253035
+        }
+
+        tbody tr:hover {
+            background: #1b282b;
+            cursor: pointer
+        }
+
+        .type-tag {
+            display: inline-flex;
+            gap: 6px;
+            align-items: center
+        }
+
+        .id {
+            font-family: monospace;
+            color: #a9bbc0
+        }
+
+        .confidence {
+            color: var(--lime)
+        }
+
+        .table-footer {
+            padding: 12px 18px;
+            display: flex;
+            justify-content: space-between;
+            color: var(--muted);
+            font-size: 11px
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #24362a;
+            color: var(--lime);
+            padding: 12px 20px;
+            border: 1px solid #47633c;
+            border-radius: 8px;
+            z-index: 10;
+            display: none;
+            max-width: 90vw
+        }
+
+        .statusnote {
+            margin-top: 18px;
+            font-size: 11px;
+            color: var(--muted);
+            display: flex;
+            gap: 8px
+        }
+
+        dialog {
+            background: var(--panel);
+            color: var(--text);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            width: min(520px, 92vw);
+            padding: 24px
+        }
+
+        dialog::backdrop {
+            background: #0009
+        }
+
+        dialog h2 {
+            font-size: 20px;
+            margin-bottom: 12px
+        }
+
+        dialog label {
+            display: block;
+            font-size: 12px;
+            margin: 18px 0 8px
+        }
+
+        dialog input[type=url] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--line);
+            background: var(--bg);
+            color: var(--text);
+            border-radius: 7px
+        }
+
+        .dialog-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 20px
+        }
+
+        .empty {
+            text-align: center;
+            padding: 25px;
+            color: var(--muted)
+        }
+
+        @media(min-width:1500px) {
+            .feed {
+                aspect-ratio: 16/9
+            }
+        }
+
+        @media(max-width:1150px) {
+            .app {
+                grid-template-columns: 76px 1fr
+            }
+
+            aside {
+                padding: 24px 12px
+            }
+
+            .brand span,
+            .nav span,
+            .navtitle,
+            .side-bottom {
+                display: none
+            }
+
+            .brand {
+                justify-content: center
+            }
+
+            .nav {
+                justify-content: center;
+                margin-top: 20px
+            }
+
+            .workspace {
+                grid-template-columns: minmax(0, 1fr) 260px
+            }
+
+            .content {
+                padding: 24px
+            }
+
+            .actions button {
+                font-size: 12px
+            }
+        }
+
+        @media(max-width:850px) {
+            .workspace {
+                grid-template-columns: 1fr
+            }
+
+            .control-body {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 20px
+            }
+
+            .control-body .divider {
+                display: none
+            }
+
+            .stats {
+                grid-template-columns: 1fr 1fr
+            }
+
+            .title-row {
+                align-items: flex-start;
+                flex-direction: column
+            }
+
+            .source {
+                margin-top: 0
+            }
+
+            .feed {
+                aspect-ratio: 16/10
+            }
+
+            .header-right .muted {
+                display: none
+            }
+        }
+
+        @media(max-width:520px) {
+            .app {
+                display: block
+            }
+
+            aside {
+                display: none
+            }
+
+            header {
+                padding: 17px
+            }
+
+            .content {
+                padding: 20px 14px
+            }
+
+            .control-body {
+                display: block
+            }
+
+            .feed-toolbar {
+                align-items: flex-start
+            }
+
+            .legend {
+                gap: 8px
+            }
+
+            .stat {
+                padding: 14px
+            }
+
+            h1 {
+                font-size: 25px
+            }
+
+            .table-wrap {
+                overflow: auto
+            }
+
+            table {
+                min-width: 550px
+            }
+
+            .actions {
+                width: 100%
+            }
+
+            .actions button {
+                flex: 1
+            }
+
+            .header-right {
+                gap: 8px
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <aside>
+            <div class="brand"><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="9" cy="9" r="6" />
+                    <circle cx="31" cy="9" r="6" />
+                    <circle cx="9" cy="31" r="6" />
+                    <circle cx="31" cy="31" r="6" />
+                    <path d="m9 9 22 22M31 9 9 31" />
+                    <rect x="15" y="15" width="10" height="10" rx="3" fill="currentColor" />
+                </svg><span>AeroVision<small>DRONE INTELLIGENCE</small></span></div>
+            <div class="navtitle">KHÔNG GIAN LÀM VIỆC</div><button class="nav active"
+                onclick="document.getElementById('overview').scrollIntoView({behavior:'smooth'})"><svg
+                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <rect x="3" y="3" width="7" height="7" rx="1" />
+                    <rect x="14" y="3" width="7" height="7" rx="1" />
+                    <rect x="3" y="14" width="7" height="7" rx="1" />
+                    <rect x="14" y="14" width="7" height="7" rx="1" />
+                </svg><span>Tổng quan</span></button><button class="nav"
+                onclick="document.getElementById('feedPanel').scrollIntoView({behavior:'smooth'})"><svg
+                    viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <rect x="3" y="5" width="13" height="14" rx="2" />
+                    <path d="m16 10 5-3v10l-5-3" />
+                </svg><span>Camera drone</span></button><button class="nav"
+                onclick="document.getElementById('history').scrollIntoView({behavior:'smooth'})"><svg
+                    viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5" />
+                </svg><span>Danh sách phát hiện</span></button><button class="nav" onclick="config.showModal()"><svg
+                    viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <circle cx="12" cy="12" r="4" />
+                    <path d="M12 2v4m0 12v4M2 12h4m12 0h4M5 5l3 3m8 8 3 3M5 19l3-3M16 8l3-3" />
+                </svg><span>Nguồn dữ liệu</span></button>
+            <div class="side-bottom">
+                <div class="connection">
+                    <div><span class="dot" style="background:var(--orange)"></span>Chế độ minh họa</div>
+                    <div class="muted">Chưa kết nối drone</div>
+                </div>
+                <div class="profile">
+                    <div class="avatar">AV</div>
+                    <div>Trạm điều khiển<small>Giám sát giao thông</small></div>
+                </div>
+            </div>
+        </aside>
+        <main id="overview">
+            <header><span class="muted">Không gian làm việc <span style="margin:0 12px;color:#47585f">/</span><span
+                        style="color:var(--text)">Giám sát phương tiện</span></span>
+                <div class="header-right"><span class="muted" id="clock"></span><span class="pill"
+                        style="color:var(--orange)">DEMO</span></div>
+            </header>
+            <div class="content">
+                <div class="title-row">
+                    <div>
+                        <h1>Quan sát từ trên cao.</h1>
+                        <p>Theo dõi và phân loại phương tiện từ hình ảnh drone.</p>
+                    </div>
+                    <div class="actions"><button onclick="exportCSV()">↓ &nbsp; Xuất dữ liệu</button><button
+                            class="primary" onclick="document.getElementById('upload').click()">＋ &nbsp; Tải ảnh
+                            drone</button></div>
+                </div>
+                <div class="stats">
+                    <div class="stat">
+                        <div class="stat-top">Phương tiện trong khung<span class="stat-icon">▣</span></div><strong
+                            id="total">12</strong><small>Đối tượng qua bộ lọc hiện tại</small>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-top">Loại phương tiện<span class="stat-icon"
+                                style="color:var(--blue);background:#1e2e3c">◈</span></div><strong
+                            id="classes">4</strong><small>Ô tô · Xe máy · Xe tải · Xe buýt</small>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-top">Độ tin cậy trung bình<span class="stat-icon"
+                                style="color:var(--orange);background:#342b20">◎</span></div><strong
+                            id="average">94.5<span style="font-size:18px">%</span></strong><small>Từ kết quả nhận diện
+                            được nạp</small>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-top">Nguồn hình ảnh<span class="stat-icon">↗</span></div><strong
+                            id="sourceName" style="font-size:22px;margin:14px 0">Mô phỏng</strong><small
+                            id="sourceInfo">Khung cảnh giao thông minh họa</small>
+                    </div>
+                </div>
+                <div class="workspace">
+                    <div>
+                        <section class="panel" id="feedPanel">
+                            <div class="panel-head">
+                                <h2><span class="dot"></span>Góc nhìn drone</h2><span class="muted"
+                                    style="font-size:11px" id="frameSize">1280 × 800 px</span>
+                            </div>
+                            <div class="feed" id="feed"><canvas id="scene" width="1280" height="800"
+                                    aria-label="Khung hình drone với các ô đánh dấu phương tiện"></canvas>
+                                <div class="feed-label" id="feedState"><span class="dot"></span>MÔ PHỎNG • DRONE 01
+                                </div>
+                                <div class="feed-topright" id="timecode">00:00:00</div>
+                                <div class="cross"></div>
+                                <div class="feed-bottom"><span id="feedCaption">KHUNG CẢNH MINH HỌA</span><span
+                                        id="objectCount">12 ĐỐI TƯỢNG</span></div>
+                            </div>
+                            <div class="feed-toolbar">
+                                <div class="legend"><span><i style="background:var(--lime)"></i>Ô tô</span><span><i
+                                            style="background:var(--blue)"></i>Xe máy</span><span><i
+                                            style="background:var(--orange)"></i>Xe tải</span><span><i
+                                            style="background:var(--pink)"></i>Xe buýt</span></div>
+                                <div><button id="pause" onclick="togglePause()">Ⅱ Tạm dừng</button> <button
+                                        onclick="fullScreen()" aria-label="Phóng toàn màn hình">⛶</button></div>
+                            </div>
+                        </section>
+                        <section class="panel table-panel" id="history">
+                            <div class="panel-head">
+                                <h2>Phương tiện được phát hiện <span id="tableCount" class="muted"
+                                        style="font-weight:400"></span></h2>
+                                <div class="table-head-tools"><select id="filter" aria-label="Lọc theo loại phương tiện"
+                                        onchange="update()">
+                                        <option value="all">Tất cả phương tiện</option>
+                                        <option value="car">Ô tô</option>
+                                        <option value="motorcycle">Xe máy</option>
+                                        <option value="truck">Xe tải</option>
+                                        <option value="bus">Xe buýt</option>
+                                    </select></div>
+                            </div>
+                            <div class="table-wrap">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Mã đối tượng</th>
+                                            <th>Phân loại</th>
+                                            <th>Độ tin cậy</th>
+                                            <th>Tọa độ tâm (px)</th>
+                                            <th>Khung hình</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="rows"></tbody>
+                                </table>
+                            </div>
+                            <div class="table-footer"><span id="tableSummary"></span><span>Chọn một dòng để đánh
+                                    dấu</span></div>
+                        </section>
+                    </div>
+                    <div>
+                        <section class="panel">
+                            <div class="panel-head">
+                                <h2>Thiết lập nhận diện</h2><span class="muted">⌘</span>
+                            </div>
+                            <div class="control-body">
+                                <div>
+                                    <div class="label"><span>Ngưỡng tin cậy</span><b id="thresholdLabel"
+                                            style="color:var(--lime)">70%</b></div><input id="threshold" type="range"
+                                        min="0" max="100" value="70" aria-label="Ngưỡng tin cậy" oninput="update()">
+                                    <div class="range-labels"><span>0%</span><span>100%</span></div><label
+                                        class="check"><input type="checkbox" id="showBoxes" checked
+                                            onchange="draw()">Hiển thị khung nhận diện</label><label
+                                        class="check"><input type="checkbox" id="showLabels" checked
+                                            onchange="draw()">Hiển thị nhãn & độ tin cậy</label>
+                                    <div class="divider"></div>
+                                </div>
+                                <div>
+                                    <h2>Phân bố phương tiện</h2>
+                                    <div id="breakdowns"></div>
+                                    <div class="divider"></div>
+                                    <p class="note">Số liệu tính trên khung hình và ngưỡng tin cậy đang chọn.</p>
+                                </div>
+                            </div>
+                        </section>
+                        <section class="panel source">
+                            <div class="panel-head">
+                                <h2>Nguồn dữ liệu</h2><span style="color:var(--orange);font-size:10px">CHƯA KẾT
+                                    NỐI</span>
+                            </div>
+                            <div style="padding:18px">
+                                <p class="note" id="dataNote">Đang hiển thị cảnh và kết quả minh họa. Bạn có thể tải ảnh
+                                    từ drone và nhập kết quả nhận diện đi kèm.</p><button onclick="config.showModal()">⚙
+                                    &nbsp; Cấu hình nguồn ảnh</button><button
+                                    onclick="document.getElementById('jsonUpload').click()">↳ &nbsp; Nhập kết quả nhận
+                                    diện</button><button onclick="resetDemo()"
+                                    style="background:transparent;color:var(--muted)">Khôi phục minh họa</button>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+                <div class="statusnote"><span>ⓘ</span><span>Giao diện thử nghiệm. Nhận diện thực tế cần kết nối mô hình
+                        AI và nguồn ảnh từ drone.</span></div>
+            </div>
+        </main>
+    </div>
+    <input id="upload" type="file" accept="image/*" hidden><input id="jsonUpload" type="file"
+        accept="application/json,.json" hidden>
+    <div id="toast" class="toast" role="status"></div>
+    <dialog id="config">
+        <h2>Nguồn ảnh từ drone</h2>
+        <p>Nhập URL ảnh hoặc luồng MJPEG do hệ thống drone cung cấp. Ảnh được hiển thị trực tiếp; kết quả AI có thể nhập
+            qua JSON.</p><label for="imageUrl">URL ảnh / MJPEG (HTTPS)</label><input id="imageUrl" type="url"
+            placeholder="https://.../drone/frame.jpg">
+        <p class="note" style="margin-top:12px">Định dạng kết quả: {"detections": [{"id": "V001", "class": "car",
+            "confidence": 0.95, "bbox": [x, y, width, height]}]}<br>Tọa độ pixel theo kích thước ảnh gốc. Các lớp: car,
+            motorcycle, truck, bus.</p>
+        <div class="dialog-actions"><button onclick="config.close()">Đóng</button><button class="primary"
+                onclick="connectImage()">Hiển thị nguồn ảnh</button></div>
+    </dialog>
+    <script>
+        const $ = id => document.getElementById(id), canvas = $('scene'), ctx = canvas.getContext('2d'); const types = { car: { name: 'Ô tô', color: '#c1f76b' }, motorcycle: { name: 'Xe máy', color: '#70b7ff' }, truck: { name: 'Xe tải', color: '#f6bc6c' }, bus: { name: 'Xe buýt', color: '#c294fb' } }; let detections = [], demo = true, paused = false, loadedImage = null, selected = null, ticks = 0, remoteImage = null, localURL = null; const seed = [['car', 96, 455, 142, 40, 70], ['car', 98, 452, 340, 40, 70], ['car', 94, 582, 490, 40, 70], ['car', 97, 700, 256, 40, 70], ['car', 91, 836, 380, 40, 70], ['car', 95, 835, 600, 40, 70], ['motorcycle', 88, 516, 250, 21, 39], ['motorcycle', 92, 762, 482, 21, 39], ['motorcycle', 90, 644, 155, 21, 39], ['truck', 99, 572, 292, 47, 105], ['truck', 93, 702, 586, 47, 102], ['bus', 98, 835, 126, 48, 120]];
+        function visible() { return detections.filter(d => d.confidence * 100 >= +$('threshold').value && ($('filter').value === 'all' || d.class === $('filter').value)) } function toast(msg) { $('toast').textContent = msg; $('toast').style.display = 'block'; clearTimeout(window.toastTimer); window.toastTimer = setTimeout(() => $('toast').style.display = 'none', 4200) }
+        function update() { let ds = visible(); $('thresholdLabel').textContent = $('threshold').value + '%'; $('total').textContent = ds.length; $('classes').textContent = new Set(ds.map(d => d.class)).size; $('average').textContent = ds.length ? (ds.reduce((s, d) => s + d.confidence * 100, 0) / ds.length).toFixed(1) + '%' : '—'; $('objectCount').textContent = ds.length + ' ĐỐI TƯỢNG'; $('tableCount').textContent = '(' + ds.length + ')'; $('tableSummary').textContent = ds.length + ' kết quả trong khung hình'; $('rows').replaceChildren(); ds.slice(0, 50).forEach(d => { let tr = document.createElement('tr'); let values = [d.id, types[d.class].name, (d.confidence * 100).toFixed(1) + '%', Math.round(d.bbox[0] + d.bbox[2] / 2) + ', ' + Math.round(d.bbox[1] + d.bbox[3] / 2), 'Hiện tại']; values.forEach((v, i) => { let td = document.createElement('td'); td.textContent = v; if (i === 0) td.className = 'id'; if (i === 1) td.style.color = types[d.class].color; if (i === 2) td.className = 'confidence'; tr.appendChild(td) }); tr.onclick = () => { selected = d.id; draw() }; $('rows').appendChild(tr) }); if (!ds.length) { let tr = document.createElement('tr'), td = document.createElement('td'); td.colSpan = 5; td.className = 'empty'; td.textContent = demo ? 'Không có phương tiện qua bộ lọc.' : 'Chưa có kết quả. Hãy nhập JSON nhận diện tương ứng với ảnh.'; tr.appendChild(td); $('rows').appendChild(tr) } $('breakdowns').innerHTML = Object.entries(types).map(([key, t]) => { let n = ds.filter(d => d.class === key).length; return `<div class="breakdown"><span class="type">${t.name}</span><div class="bar"><div style="width:${ds.length ? n / ds.length * 100 : 0}%;background:${t.color}"></div></div><b>${n}</b></div>` }).join(''); draw() }
+        function aerial() { let w = canvas.width, h = canvas.height; ctx.fillStyle = '#3c4c3e'; ctx.fillRect(0, 0, w, h); let r = 43; function random() { r = (r * 16807) % 2147483647; return r / 2147483647 } for (let i = 0; i < 120; i++) { let x = random() * w, y = random() * h; ctx.fillStyle = ['#354334', '#42543d', '#2d3b31'][i % 3]; ctx.beginPath(); ctx.arc(x, y, 8 + random() * 27, 0, 7); ctx.fill() } ctx.fillStyle = '#7b8176'; ctx.fillRect(330, 0, 635, h); ctx.fillStyle = '#353b3c'; ctx.fillRect(375, 0, 555, h); ctx.fillStyle = '#68715d'; ctx.fillRect(635, 0, 36, h); for (let x of [383, 625, 680, 918]) { ctx.strokeStyle = '#b8b9a7'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke() } ctx.setLineDash([32, 32]); ctx.strokeStyle = '#c0c0af'; ctx.lineWidth = 3; for (let x of [510, 800]) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke() } ctx.setLineDash([]); for (let i = 0; i < 5; i++) { ctx.fillStyle = '#18241e55'; ctx.fillRect(25, i * 175 + 55, 265, 100); ctx.fillStyle = ['#899089', '#7b847e', '#6c7c72'][i % 3]; ctx.fillRect(12, i * 175 + 28, 235, 100); ctx.fillStyle = '#616e65'; ctx.fillRect(22, i * 175 + 36, 215, 82); ctx.strokeStyle = '#8b938a'; ctx.lineWidth = 2; for (let j = 0; j < 4; j++) { ctx.beginPath(); ctx.moveTo(25, i * 175 + 45 + j * 20); ctx.lineTo(232, i * 175 + 45 + j * 20); ctx.stroke() } ctx.fillStyle = '#8a8e80'; ctx.fillRect(1030, i * 180 + 10, 270, 110); ctx.fillStyle = '#606e62'; ctx.fillRect(1038, i * 180 + 20, 255, 85) } for (let d of detections) { let [x, y, w, h] = d.bbox; ctx.fillStyle = '#0005'; ctx.fillRect(x + 6, y + 7, w, h); ctx.fillStyle = d.class === 'bus' ? '#d5b66f' : d.class === 'truck' ? '#c6cec8' : d.class === 'motorcycle' ? '#202428' : d.id === 'V003' ? '#786f63' : '#cbd4d1'; ctx.fillRect(x, y, w, h); ctx.fillStyle = '#344449'; ctx.fillRect(x + 4, y + 9, w - 8, h * .19); ctx.fillRect(x + 4, y + h - 18, w - 8, 10); ctx.fillStyle = '#eef1e333'; ctx.fillRect(x + 4, y + h * .38, w - 8, h * .25) } }
+        function draw() { ctx.clearRect(0, 0, canvas.width, canvas.height); if (demo) aerial(); else if (loadedImage) ctx.drawImage(loadedImage, 0, 0, canvas.width, canvas.height); else { ctx.fillStyle = '#111b20'; ctx.fillRect(0, 0, canvas.width, canvas.height) } if (!demo && remoteImage) return; for (let d of visible()) { let [x, y, w, h] = d.bbox, t = types[d.class]; if ($('showBoxes').checked) { ctx.strokeStyle = t.color; ctx.lineWidth = selected === d.id ? 5 : 2; ctx.strokeRect(x - 5, y - 5, w + 10, h + 10); if (selected === d.id) { ctx.fillStyle = t.color + '25'; ctx.fillRect(x - 5, y - 5, w + 10, h + 10) } } if ($('showLabels').checked) { ctx.font = '15px system-ui'; let label = t.name + ' ' + Math.round(d.confidence * 100) + '%', tw = ctx.measureText(label).width; ctx.fillStyle = t.color; ctx.fillRect(x - 5, Math.max(0, y - 29), tw + 12, 24); ctx.fillStyle = '#112016'; ctx.fillText(label, x + 1, Math.max(18, y - 12)) } } }
+        function resetDemo() { if (remoteImage) { remoteImage.remove(); remoteImage = null } if (localURL) { URL.revokeObjectURL(localURL); localURL = null } demo = true; loadedImage = null; selected = null; paused = false; canvas.width = 1280; canvas.height = 800; canvas.style.visibility = 'visible'; $('feed').style.aspectRatio = '16/10'; detections = seed.map((s, i) => ({ id: 'V' + String(i + 1).padStart(3, '0'), class: s[0], confidence: s[1] / 100, bbox: s.slice(2) })); $('sourceName').textContent = 'Mô phỏng'; $('sourceInfo').textContent = 'Khung cảnh giao thông minh họa'; $('feedState').textContent = '● MÔ PHỎNG • DRONE 01'; $('feedCaption').textContent = 'KHUNG CẢNH MINH HỌA'; $('dataNote').textContent = 'Đang hiển thị cảnh và kết quả minh họa. Tải ảnh drone và nhập kết quả nhận diện để xem dữ liệu thực.'; $('frameSize').textContent = '1280 × 800 px'; $('pause').textContent = 'Ⅱ Tạm dừng'; $('pause').disabled = false; update() }
+        function togglePause() { paused = !paused; $('pause').textContent = paused ? '▶ Tiếp tục' : 'Ⅱ Tạm dừng'; $('feedState').textContent = paused ? 'Ⅱ MÔ PHỎNG ĐÃ TẠM DỪNG' : '● MÔ PHỎNG • DRONE 01' } function fullScreen() { if (document.fullscreenElement) document.exitFullscreen(); else $('feed').requestFullscreen().catch(() => toast('Trình duyệt chưa hỗ trợ toàn màn hình.')) }
+        function setRealSource(name) { demo = false; detections = []; selected = null; $('sourceName').textContent = 'Ảnh drone'; $('sourceInfo').textContent = name; $('feedState').textContent = 'ẢNH ĐÃ NẠP • CHỜ KẾT QUẢ AI'; $('feedCaption').textContent = 'NGUỒN ẢNH CỦA BẠN'; $('dataNote').textContent = 'Ảnh đã được hiển thị. Nhập JSON từ mô hình AI để vẽ khung và thống kê phương tiện.'; $('pause').disabled = true; update() }
+        $('upload').onchange = e => { let file = e.target.files[0]; if (!file) return; if (!file.type.startsWith('image/')) return toast('Vui lòng chọn tệp ảnh.'); let url = URL.createObjectURL(file), img = new Image(); img.onload = () => { if (remoteImage) { remoteImage.remove(); remoteImage = null } if (localURL) URL.revokeObjectURL(localURL); localURL = url; loadedImage = img; canvas.style.visibility = 'visible'; canvas.width = img.naturalWidth; canvas.height = img.naturalHeight; $('feed').style.aspectRatio = img.naturalWidth + '/' + img.naturalHeight; $('frameSize').textContent = img.naturalWidth + ' × ' + img.naturalHeight + ' px'; setRealSource(file.name); toast('Đã tải ảnh. Nhập kết quả AI để hiển thị nhận diện.') }; img.onerror = () => { URL.revokeObjectURL(url); toast('Không đọc được ảnh này.') }; img.src = url; e.target.value = '' };
+        $('jsonUpload').onchange = async e => { let f = e.target.files[0]; if (!f) return; try { if (demo || remoteImage) throw Error('Hãy tải một ảnh drone trước khi nhập kết quả.'); let json = JSON.parse(await f.text()), ds = Array.isArray(json) ? json : json.detections; if (!Array.isArray(ds) || ds.length > 10000) throw Error('JSON cần có mảng detections (tối đa 10.000).'); const ids = new Set(); let next = ds.map((d, i) => { if (!types[d.class] || typeof d.confidence !== 'number' || !Number.isFinite(d.confidence) || d.confidence < 0 || d.confidence > 1 || !Array.isArray(d.bbox) || d.bbox.length !== 4 || !d.bbox.every(Number.isFinite) || d.bbox.some(v => v < 0) || d.bbox[2] <= 0 || d.bbox[3] <= 0 || d.bbox[0] + d.bbox[2] > canvas.width || d.bbox[1] + d.bbox[3] > canvas.height) throw Error('Kết quả không hợp lệ: kiểm tra lớp, confidence 0–1 và bbox trong ảnh.'); let id = String(d.id || 'V' + (i + 1)); if (ids.has(id)) throw Error('Mã đối tượng bị trùng.'); ids.add(id); return { id, class: d.class, confidence: d.confidence, bbox: d.bbox } }); detections = next; $('feedState').textContent = 'ẢNH DRONE • ĐÃ NẠP KẾT QUẢ AI'; update(); toast('Đã nhập ' + ds.length + ' đối tượng.') } catch (err) { toast(err.message) } e.target.value = '' };
+        function exportCSV() { let ds = visible(); if (!ds.length) return toast('Chưa có dữ liệu để xuất.'); const safe = v => '"' + String(v).replace(/^[=+@-]/, "'$&").replaceAll('"', '""') + '"'; let csv = '\ufeff' + [['Nguồn', 'Mã', 'Loại', 'Độ tin cậy', 'X', 'Y', 'Rộng', 'Cao'], ...ds.map(d => [demo ? 'Minh họa' : 'Ảnh drone', d.id, types[d.class].name, d.confidence, ...d.bbox])].map(r => r.map(safe).join(',')).join('\r\n'); let url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })), a = document.createElement('a'); a.href = url; a.download = 'aerovision-phuong-tien.csv'; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); toast('Đã xuất dữ liệu theo bộ lọc hiện tại.') }
+        function connectImage() { let u; try { u = new URL($('imageUrl').value); if (u.protocol !== 'https:') throw Error() } catch { return toast('Vui lòng nhập URL HTTPS hợp lệ.') } let im = new Image(); im.alt = 'Nguồn ảnh từ drone'; im.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:contain'; im.onload = () => { if (remoteImage) remoteImage.remove(); remoteImage = im; loadedImage = null; canvas.style.visibility = 'hidden'; $('feed').prepend(im); setRealSource('Nguồn URL / MJPEG'); $('feedState').textContent = 'NGUỒN URL • CHƯA CÓ KẾT QUẢ AI'; $('frameSize').textContent = im.naturalWidth + ' × ' + im.naturalHeight + ' px'; $('dataNote').textContent = 'Đang hiển thị nguồn URL. Muốn nhập khung nhận diện, tải ảnh tĩnh tương ứng từ drone trước.'; $('config').close(); toast('Đã hiển thị nguồn ảnh. Luồng cần được máy chủ hỗ trợ.'); im.onload = null }; im.onerror = () => toast('Không tải được nguồn ảnh. Kiểm tra URL và quyền truy cập.'); im.src = u.href }
+        setInterval(() => { let now = new Date(); $('clock').textContent = now.toLocaleTimeString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }) + ' · ' + now.toLocaleDateString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }); if (demo && !paused) { ticks++; $('timecode').textContent = new Date(ticks * 1000).toISOString().slice(11, 19); detections.forEach(d => { d.bbox[1] += (d.bbox[0] < 650 ? 1 : -1); if (d.bbox[1] > 680) d.bbox[1] = 60; if (d.bbox[1] < 50) d.bbox[1] = 670 }); update() } }, 1000); resetDemo();
+    </script>
+</body>
+
+</html>
